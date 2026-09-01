@@ -2,7 +2,11 @@ package org.example;
 
 import org.example._1input.InputManager;
 import org.example._2parser.ASTParser;
+import org.example._3graph.CallEdge;
+import org.example._3graph.CallGraphBuilder;
+import org.example._3graph.MethodNode;
 import org.example.model.ParsedMethod;
+import org.jgrapht.Graph;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -23,7 +27,9 @@ public class Main {
         List<ParsedMethod> parsedMethods1 = astParser.parseFiled(files1);
         List<ParsedMethod> parsedMethods2 = astParser.parseFiled(files2);
 
-
+        CallGraphBuilder cgb = new CallGraphBuilder();
+        Graph<MethodNode, CallEdge> graph = cgb.buildGraph(parsedMethods1);
+        /*
         for (Path a : files1){
             System.out.println(a);
         }
@@ -51,7 +57,22 @@ public class Main {
             System.out.println(a.getAnnotations());
             System.out.println();
         }
+        */
 
+        System.out.println("Čvorovi:");
+        for (MethodNode node : graph.vertexSet()){
+            System.out.println(node.getClassName() + "." + node.getMethodName());
+        }
+        System.out.println("\nBridovi");
+        for (CallEdge edge : graph.edgeSet()){
+            MethodNode source = graph.getEdgeSource(edge);
+            MethodNode target = graph.getEdgeTarget(edge);
+            System.out.println(
+                    source.getClassName() + "." + source.getMethodName()
+                    + " --> "
+                    + target.getClassName() + "." + target.getMethodName()
+            );
+        }
 
 
     }
