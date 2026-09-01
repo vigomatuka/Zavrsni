@@ -18,7 +18,7 @@ public class MethodNode {
     public String getMethodName(){
         return methodName;
     }
-    public boolean getEntryPoint(){
+    public boolean isEntryPoint(){
         return entryPoint;
     }
     public void markAsEntryPoint(){
