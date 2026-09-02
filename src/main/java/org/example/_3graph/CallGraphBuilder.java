@@ -44,8 +44,8 @@ public class CallGraphBuilder {
         for (ParsedMethod pm : parsedMethods){
             List<String> annotations = pm.getAnnotations();
             if (annotations.contains("Test") || annotations.contains("Bean") ||
-                annotations.contains("Sceduled") || annotations.contains("EventListener") ||
-                annotations.contains("PostConstruct")){
+                annotations.contains("Scheduled") || annotations.contains("EventListener") ||
+                annotations.contains("PostConstruct") || pm.getMethodName().equals("main")){
                 MethodNode node = map.get(getKey(pm));
                 if (node != null){
                     node.markAsEntryPoint();

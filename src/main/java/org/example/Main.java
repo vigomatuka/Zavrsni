@@ -5,18 +5,20 @@ import org.example._2parser.ASTParser;
 import org.example._3graph.CallEdge;
 import org.example._3graph.CallGraphBuilder;
 import org.example._3graph.MethodNode;
+import org.example._4analyser.DeadCodeAnalyser;
 import org.example.model.ParsedMethod;
 import org.jgrapht.Graph;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static void main() throws Exception{
 
-        Path repo1 = Path.of("C:\\Users\\Vigo\\Downloads\\test-input-primjer\\servis-a-users");
+        Path repo1 = Path.of("C:\\Users\\Vigo\\Downloads\\Hotel-Management-Project-Java-master\\Hotel-Management-Project-Java-master");
         Path repo2 = Path.of("C:\\Users\\Vigo\\Downloads\\test-input-primjer\\servis-b-orders");
 
         InputManager inputManager = new InputManager();
@@ -28,7 +30,13 @@ public class Main {
         List<ParsedMethod> parsedMethods2 = astParser.parseFiled(files2);
 
         CallGraphBuilder cgb = new CallGraphBuilder();
-        Graph<MethodNode, CallEdge> graph = cgb.buildGraph(parsedMethods1);
+        Graph<MethodNode, CallEdge> graph1 = cgb.buildGraph(parsedMethods1);
+        Graph<MethodNode, CallEdge> graph2 = cgb.buildGraph(parsedMethods2);
+
+        DeadCodeAnalyser dca = new DeadCodeAnalyser();
+        Set<MethodNode> dead1 = dca.findDeadCode(graph1);
+        Set<MethodNode> dead2 = dca.findDeadCode(graph2);
+
         /*
         for (Path a : files1){
             System.out.println(a);
@@ -60,20 +68,24 @@ public class Main {
         */
 
         System.out.println("Čvorovi:");
-        for (MethodNode node : graph.vertexSet()){
+        for (MethodNode node : graph1.vertexSet()){
             System.out.println(node.getClassName() + "." + node.getMethodName());
-        }
+        }/*
         System.out.println("\nBridovi");
-        for (CallEdge edge : graph.edgeSet()){
-            MethodNode source = graph.getEdgeSource(edge);
-            MethodNode target = graph.getEdgeTarget(edge);
+        for (CallEdge edge : graph1.edgeSet()){
+            MethodNode source = graph1.getEdgeSource(edge);
+            MethodNode target = graph1.getEdgeTarget(edge);
             System.out.println(
                     source.getClassName() + "." + source.getMethodName()
                     + " --> "
                     + target.getClassName() + "." + target.getMethodName()
             );
         }
-
+        */
+        System.out.println("\nMrtvi");
+        for (MethodNode a : dead1){
+            System.out.println(a.getClassName() + "." + a.getMethodName());
+        }
 
     }
 }
