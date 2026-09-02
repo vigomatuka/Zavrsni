@@ -45,10 +45,7 @@ public class CallGraphBuilder {
             List<String> annotations = pm.getAnnotations();
             if (annotations.contains("Test") || annotations.contains("Bean") ||
                 annotations.contains("Sceduled") || annotations.contains("EventListener") ||
-                annotations.contains("PostConstruct") || annotations.contains("GetMapping") ||
-                annotations.contains("PostMapping") || annotations.contains("PutMapping") ||
-                annotations.contains("DeleteMapping") || annotations.contains("PatchMapping") ||
-                annotations.contains("RequestMapping")){
+                annotations.contains("PostConstruct")){
                 MethodNode node = map.get(getKey(pm));
                 if (node != null){
                     node.markAsEntryPoint();
