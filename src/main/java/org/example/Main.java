@@ -18,7 +18,7 @@ import java.util.Set;
 public class Main {
     static void main() throws Exception{
 
-        Path repo1 = Path.of("C:\\Users\\Vigo\\Downloads\\Hotel-Management-Project-Java-master\\Hotel-Management-Project-Java-master");
+        Path repo1 = Path.of("C:\\Users\\Vigo\\Downloads\\test-input-primjer\\servis-a-users");
         Path repo2 = Path.of("C:\\Users\\Vigo\\Downloads\\test-input-primjer\\servis-b-orders");
 
         InputManager inputManager = new InputManager();
@@ -26,8 +26,8 @@ public class Main {
         List<Path> files2 = inputManager.scanForFiles(repo2);
 
         ASTParser astParser = new ASTParser();
-        List<ParsedMethod> parsedMethods1 = astParser.parseFiled(files1);
-        List<ParsedMethod> parsedMethods2 = astParser.parseFiled(files2);
+        List<ParsedMethod> parsedMethods1 = astParser.parseFiled(files1, repo1);
+        List<ParsedMethod> parsedMethods2 = astParser.parseFiled(files2, repo2);
 
         CallGraphBuilder cgb = new CallGraphBuilder();
         Graph<MethodNode, CallEdge> graph1 = cgb.buildGraph(parsedMethods1);
@@ -45,7 +45,6 @@ public class Main {
         for (Path a : files2){
             System.out.println(a);
         }
-
         for (ParsedMethod a: parsedMethods1){
             System.out.println(a.getMethodName());
             System.out.println(a.getClassName());
@@ -55,7 +54,6 @@ public class Main {
             System.out.println(a.getAnnotations());
             System.out.println();
         }
-
         for (ParsedMethod a: parsedMethods2){
             System.out.println(a.getMethodName());
             System.out.println(a.getClassName());
@@ -70,7 +68,7 @@ public class Main {
         System.out.println("Čvorovi:");
         for (MethodNode node : graph1.vertexSet()){
             System.out.println(node.getClassName() + "." + node.getMethodName());
-        }/*
+        }
         System.out.println("\nBridovi");
         for (CallEdge edge : graph1.edgeSet()){
             MethodNode source = graph1.getEdgeSource(edge);
@@ -81,11 +79,12 @@ public class Main {
                     + target.getClassName() + "." + target.getMethodName()
             );
         }
-        */
+
         System.out.println("\nMrtvi");
         for (MethodNode a : dead1){
             System.out.println(a.getClassName() + "." + a.getMethodName());
         }
+
 
     }
 }

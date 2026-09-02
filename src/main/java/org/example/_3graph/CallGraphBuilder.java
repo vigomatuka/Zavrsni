@@ -29,13 +29,7 @@ public class CallGraphBuilder {
         for (ParsedMethod pm : parsedMethods){
             for (String cm : pm.getCalledMethods()){
                 MethodNode source = map.get(getKey(pm));
-                MethodNode target = null;
-                for (Map.Entry<String, MethodNode> entry : map.entrySet()){
-                    if (entry.getKey().endsWith("." + cm)){
-                        target = entry.getValue();
-                        break;
-                    }
-                }
+                MethodNode target = map.get(cm);
                 if (target != null) graph.addEdge(source, target);
             }
         }

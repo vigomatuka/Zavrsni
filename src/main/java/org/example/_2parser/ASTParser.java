@@ -6,23 +6,36 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.example.model.ParsedMethod;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ASTParser {
 
-    public List<ParsedMethod> parseFiled(List<Path> files) throws IOException {
+    public List<ParsedMethod> parseFiled(List<Path> files, Path serviceRoot) throws IOException {
         List<ParsedMethod> parsiraneMetode = new ArrayList<>();
+
+        CombinedTypeSolver typeSolver = new CombinedTypeSolver(
+                new ReflectionTypeSolver(),
+                new JavaParserTypeSolver(serviceRoot.resolve("src/main/java"))
+        );
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
+        StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
 
         for (Path file : files){
             CompilationUnit cu = StaticJavaParser.parse(file);
             List<MethodDeclaration> metode = cu.findAll(MethodDeclaration.class);
+
             for(MethodDeclaration metoda : metode){
                 String name = metoda.getNameAsString();
                 String className = metoda
@@ -31,12 +44,23 @@ public class ASTParser {
                         .orElse("UNKNOWN");
                 String filenName = file.getFileName().toString();
                 int lineNumber = metoda.getBegin().map(p -> p.line).orElse(-1); //-1 je sentinel vrijednost
-                List<String> calledMethods = metoda.findAll(MethodCallExpr.class).stream()
-                        .map(MethodCallExpr::getNameAsString)
-                        .collect(Collectors.toList()); //collect sakuplja rezultat u strukturu, a Colelctor je pomocna klasa
+
+                List<String> calledMethods = new ArrayList<>();
+                //ne moze se uzeti samo ime metode jer moze biti istoimena metoda od druge klase
+                for (MethodCallExpr mce : metoda.findAll(MethodCallExpr.class)){
+                    try {
+                        ResolvedMethodDeclaration resolved = mce.resolve();
+                        calledMethods.add(resolved.declaringType().getClassName() + "." + resolved.getName());
+                    }
+                    catch (UnsolvedSymbolException | UnsupportedOperationException e) {
+                        //solver moze pasti na neke vanjske biblioteke ili neke druge rijetke stvari
+                        calledMethods.add(mce.getNameAsString());
+                    }
+                }
                 List<String> annotations = metoda.getAnnotations().stream()
                         .map(AnnotationExpr::getNameAsString)
                         .collect(Collectors.toList());
+
                 parsiraneMetode.add(new ParsedMethod(name, className, filenName, lineNumber, calledMethods, annotations));
             }
         }
