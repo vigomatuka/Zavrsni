@@ -1,7 +1,7 @@
 package org.example._4analyser;
 
-import org.example._3graph.CallEdge;
-import org.example._3graph.MethodNode;
+import org.example.model.CallEdge;
+import org.example.model.MethodNode;
 import org.jgrapht.Graph;
 import org.jgrapht.traverse.DepthFirstIterator;
 

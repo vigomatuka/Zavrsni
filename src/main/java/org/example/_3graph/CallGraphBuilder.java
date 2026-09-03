@@ -1,5 +1,7 @@
 package org.example._3graph;
 
+import org.example.model.CallEdge;
+import org.example.model.MethodNode;
 import org.example.model.ParsedMethod;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;

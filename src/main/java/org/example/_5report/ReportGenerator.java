@@ -1,6 +1,6 @@
 package org.example._5report;
 
-import org.example._3graph.MethodNode;
+import org.example.model.MethodNode;
 
 import java.nio.file.Path;
 import java.util.Set;

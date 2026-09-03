@@ -2,9 +2,9 @@ package org.example;
 
 import org.example._1input.InputManager;
 import org.example._2parser.ASTParser;
-import org.example._3graph.CallEdge;
+import org.example.model.CallEdge;
 import org.example._3graph.CallGraphBuilder;
-import org.example._3graph.MethodNode;
+import org.example.model.MethodNode;
 import org.example._4analyser.DeadCodeAnalyser;
 import org.example._5report.ReportGenerator;
 import org.example.model.ParsedMethod;

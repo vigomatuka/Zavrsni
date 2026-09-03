@@ -1,4 +1,4 @@
-package org.example._3graph;
+package org.example.model;
 
 import org.jgrapht.graph.DefaultEdge;
 
