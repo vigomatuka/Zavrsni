@@ -4,8 +4,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -60,8 +59,27 @@ public class ASTParser {
                 List<String> annotations = metoda.getAnnotations().stream()
                         .map(AnnotationExpr::getNameAsString)
                         .collect(Collectors.toList());
+                String mappingPath = null;
 
-                parsiraneMetode.add(new ParsedMethod(name, className, filenName, lineNumber, calledMethods, annotations));
+                for (AnnotationExpr ann : metoda.getAnnotations()){
+                    String annStr = ann.getNameAsString();
+                    if (annStr.endsWith("Mapping")){
+                        if (ann instanceof SingleMemberAnnotationExpr sma){
+                            mappingPath = sma.getMemberValue().toString().replace("\"", "");
+                        }
+                        else if (ann instanceof NormalAnnotationExpr nae){ //sa slucaje gdje je uri npr value = "users"
+                            for (MemberValuePair pair : nae.getPairs()){
+                                String pairName = pair.getNameAsString();
+                                if (pairName.equals("value") || pairName.equals("path")){
+                                    mappingPath = pair.getValue().toString().replace("\"", "");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                parsiraneMetode.add(new ParsedMethod(name, className, filenName, lineNumber, calledMethods, annotations, mappingPath));
             }
         }
 

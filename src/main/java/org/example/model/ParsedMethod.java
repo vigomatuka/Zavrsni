@@ -9,14 +9,17 @@ public class ParsedMethod {
     private int lineNumber;
     private List<String> calledMethods;
     private List<String> annotations;
+    private String mappingPath;
 
-    public ParsedMethod(String methodName, String className, String fileName, int lineNumber, List<String> calledMethods, List<String> annotations){
+    public ParsedMethod(String methodName, String className, String fileName, int lineNumber,
+                        List<String> calledMethods, List<String> annotations, String mappingPath){
         this.methodName = methodName;
         this.className = className;
         this.fileName = fileName;
         this.lineNumber = lineNumber;
         this. calledMethods = calledMethods;
         this. annotations = annotations;
+        this.mappingPath = mappingPath;
     }
 
     public String getMethodName(){
@@ -42,4 +45,6 @@ public class ParsedMethod {
     public List<String> getAnnotations(){
         return annotations;
     }
+
+    public String getMappingPath() {return mappingPath;}
 }

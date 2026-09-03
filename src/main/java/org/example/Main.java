@@ -37,7 +37,7 @@ public class Main {
         Set<MethodNode> dead1 = dca.findDeadCode(graph1);
         Set<MethodNode> dead2 = dca.findDeadCode(graph2);
 
-        /*
+
         for (Path a : files1){
             System.out.println(a);
         }
@@ -52,6 +52,7 @@ public class Main {
             System.out.println(a.getLineNumber());
             System.out.println(a.getCalledMethods());
             System.out.println(a.getAnnotations());
+            System.out.println(a.getMappingPath());
             System.out.println();
         }
         for (ParsedMethod a: parsedMethods2){
@@ -61,9 +62,10 @@ public class Main {
             System.out.println(a.getLineNumber());
             System.out.println(a.getCalledMethods());
             System.out.println(a.getAnnotations());
+            System.out.println(a.getMappingPath());
             System.out.println();
         }
-        */
+        /*
 
         System.out.println("Čvorovi:");
         for (MethodNode node : graph1.vertexSet()){
@@ -84,6 +86,8 @@ public class Main {
         for (MethodNode a : dead1){
             System.out.println(a.getClassName() + "." + a.getMethodName());
         }
+
+         */
 
 
     }
