@@ -6,6 +6,7 @@ import org.example._3graph.CallEdge;
 import org.example._3graph.CallGraphBuilder;
 import org.example._3graph.MethodNode;
 import org.example._4analyser.DeadCodeAnalyser;
+import org.example._5report.ReportGenerator;
 import org.example.model.ParsedMethod;
 import org.jgrapht.Graph;
 
@@ -37,7 +38,10 @@ public class Main {
         Set<MethodNode> dead1 = dca.findDeadCode(graph1);
         Set<MethodNode> dead2 = dca.findDeadCode(graph2);
 
+        ReportGenerator rg = new ReportGenerator();
+        rg.generateReport(dead1, dead2, repo1, repo2);
 
+        /*
         for (Path a : files1){
             System.out.println(a);
         }
@@ -65,7 +69,6 @@ public class Main {
             System.out.println(a.getMappingPath());
             System.out.println();
         }
-        /*
 
         System.out.println("Čvorovi:");
         for (MethodNode node : graph1.vertexSet()){
