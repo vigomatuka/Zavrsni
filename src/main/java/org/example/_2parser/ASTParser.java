@@ -7,16 +7,19 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.example.model.HttpClientCall;
 import org.example.model.ParsedMethod;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ASTParser {
@@ -36,7 +39,7 @@ public class ASTParser {
             List<MethodDeclaration> metode = cu.findAll(MethodDeclaration.class);
 
             for(MethodDeclaration metoda : metode){
-                String name = metoda.getNameAsString();
+                String methodName = metoda.getNameAsString();
                 String className = metoda
                         .findAncestor(ClassOrInterfaceDeclaration.class)
                         .map(ClassOrInterfaceDeclaration::getNameAsString)
@@ -79,11 +82,64 @@ public class ASTParser {
                     }
                 }
 
-                parsiraneMetode.add(new ParsedMethod(name, className, filenName, lineNumber, calledMethods, annotations, mappingPath));
+                List<HttpClientCall> httpClientCalls = new ArrayList<>();
+                for (MethodCallExpr mce : metoda.findAll(MethodCallExpr.class)){
+                    if (mce.getScope().isEmpty()) continue; //getscope je ono prije . dakle restTemplate u restTemplate.getForObject()
+                    ResolvedType scopeType;
+                    try{
+                        scopeType = mce.getScope().get().calculateResolvedType();
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    if (!scopeType.describe().equals("org.springframework.web.client.RestTemplate")){
+                        continue;
+                    }
+                    if (!Set.of("getForObject", "getForEntity", "postForObject", "postForEntity", "put", "delete").contains(methodName)){
+                        continue;
+                    }
+                    Expression urlArg = mce.getArgument(0);
+                    String url = extractUrl(urlArg);
+
+                    String httpMethod = methodNametoHttpMethod(methodName);
+                    httpClientCalls.add(new HttpClientCall(httpMethod, url));
+                }
+
+                parsiraneMetode.add(new ParsedMethod(methodName, className, filenName, lineNumber,
+                        calledMethods, annotations, mappingPath, httpClientCalls));
             }
         }
 
         return parsiraneMetode;
+    }
+
+    private String extractUrl(Expression urlArg){
+        String url = "*"; //sa * ne puca konkatenacija, a sa null puca, zato je ovdje *
+        if (urlArg instanceof StringLiteralExpr){
+            url = urlArg.asStringLiteralExpr().asString();
+        }
+        if (urlArg instanceof BinaryExpr){
+            BinaryExpr binary = urlArg.asBinaryExpr();
+
+            if (binary.getOperator().equals(BinaryExpr.Operator.PLUS)){ //inace se koristi == jer je Operator enumm ali nema veze
+                Expression left = binary.getLeft();
+                Expression right = binary.getRight();
+
+                String leftUrl = extractUrl(left);
+                String rightUrl = extractUrl(right);
+                url = leftUrl + rightUrl;
+            }
+        }
+        return url;
+    }
+
+    private String methodNametoHttpMethod(String methodName){
+        return switch (methodName){
+            case "getForObject", "getForEntity" -> "GET";
+            case "postForObject", "postForEntity" -> "POST";
+            case "put" -> "PUT";
+            case "delete" -> "DELETE";
+            default -> "UNKNOWN"; //za exchange jer mi ga se nije dalo radit
+        };
     }
 
 }

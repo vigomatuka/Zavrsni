@@ -10,9 +10,11 @@ public class ParsedMethod {
     private List<String> calledMethods;
     private List<String> annotations;
     private String mappingPath;
+    private List<HttpClientCall> httpClientCalls;
 
     public ParsedMethod(String methodName, String className, String fileName, int lineNumber,
-                        List<String> calledMethods, List<String> annotations, String mappingPath){
+                        List<String> calledMethods, List<String> annotations,
+                        String mappingPath, List<HttpClientCall> httpClientCalls){
         this.methodName = methodName;
         this.className = className;
         this.fileName = fileName;
@@ -20,6 +22,7 @@ public class ParsedMethod {
         this. calledMethods = calledMethods;
         this. annotations = annotations;
         this.mappingPath = mappingPath;
+        this.httpClientCalls = httpClientCalls;
     }
 
     public String getMethodName(){
@@ -47,4 +50,6 @@ public class ParsedMethod {
     }
 
     public String getMappingPath() {return mappingPath;}
+
+    public List<HttpClientCall> getHttpClientCalls() {return httpClientCalls;}
 }
