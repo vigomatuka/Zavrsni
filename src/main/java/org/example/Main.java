@@ -4,6 +4,7 @@ import org.example._1input.InputManager;
 import org.example._2parser.ASTParser;
 import org.example.model.CallEdge;
 import org.example._3graph.CallGraphBuilder;
+import org.example.model.HttpClientCall;
 import org.example.model.MethodNode;
 import org.example._4analyser.DeadCodeAnalyser;
 import org.example._5report.ReportGenerator;
@@ -39,11 +40,30 @@ public class Main {
         Map<String, Set<MethodNode>> deadCode = dca.findDeadCode(graph1, repo1.toString(), graph2, repo2.toString());
 
         ReportGenerator rg = new ReportGenerator();
-        //rg.generateReport(dead1, dead2, repo1, repo2);
+        rg.generateReport(deadCode, repo1, repo2);
 
-
+        for (ParsedMethod pm : parsedMethods1) {
+            if (pm.getMappingPath() != null) {
+                System.out.println("ENDPOINT: " + pm.getClassName() + "." + pm.getMethodName() + " -> " + pm.getMappingPath());
+            }
+        }
+        for (ParsedMethod pm : parsedMethods2) {
+            if (!pm.getHttpClientCalls().isEmpty()) {
+                for (HttpClientCall call : pm.getHttpClientCalls()) {
+                    System.out.println("CLIENT CALL: " + pm.getClassName() + "." + pm.getMethodName() + " -> " + call.httpMethod() + " " + call.url());
+                }
+            }
+        }
 
         /*
+        deadCode.forEach((key, methods) -> {
+            System.out.println("Key: " + key);
+
+            methods.forEach(method ->
+                    System.out.println("  Method: " + method.getClassName() + "." + method.getMethodName())
+            );
+        });
+
         for (Path a : files1){
             System.out.println(a);
         }

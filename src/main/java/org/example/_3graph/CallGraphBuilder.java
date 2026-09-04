@@ -35,12 +35,9 @@ public class CallGraphBuilder {
                     }
                 }
             }
-            String mappingPath = pm.getMappingPath(); //regex za zamijeniti {nesto} sa *
-            if (mappingPath != null){
-                mappingPath = mappingPath.replaceAll("\\{[^/]+\\}", "*");
-            }
+
             MethodNode node = new MethodNode(pm.getClassName(), pm.getMethodName(), pm.getFileName(), pm.getLineNumber(),
-                                            mappingPath, httpMethod , pm.getHttpClientCalls());
+                                            pm.getMappingPath(), httpMethod , pm.getHttpClientCalls());
             graph.addVertex(node);
             String key = getKey(pm);
             map.put(key, node);

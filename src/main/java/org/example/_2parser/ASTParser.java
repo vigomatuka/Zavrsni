@@ -3,7 +3,9 @@ package org.example._2parser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -63,6 +65,7 @@ public class ASTParser {
                         .map(AnnotationExpr::getNameAsString)
                         .collect(Collectors.toList());
 
+                //Mapping path metode
                 String mappingPath = null;
                 for (AnnotationExpr ann : metoda.getAnnotations()){
                     String annStr = ann.getNameAsString();
@@ -81,7 +84,31 @@ public class ASTParser {
                         }
                     }
                 }
+                //Mapping path klase
+                String classPath = "";
+                ClassOrInterfaceDeclaration classDecl = metoda.findAncestor(ClassOrInterfaceDeclaration.class).orElse(null);
+                if (classDecl != null){ //teoretski se može dogoditi da metoda nema klasu ako je noesto record ili enum
+                    for (AnnotationExpr ann : classDecl.getAnnotations()){
+                        if (ann.getNameAsString().equals("RequestMapping")){
+                            if (ann instanceof SingleMemberAnnotationExpr sma){
+                                classPath = sma.getMemberValue().toString().replace("\"", "");
+                            } else if (ann instanceof NormalAnnotationExpr nae){
+                                for (MemberValuePair pair : nae.getPairs()){
+                                    String pairName = pair.getNameAsString();
+                                    if (pairName.equals("value") || pairName.equals("path")){
+                                        classPath = pair.getValue().toString().replace("\"", "");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (mappingPath != null){
+                    mappingPath = classPath + mappingPath;
+                    mappingPath = mappingPath.replaceAll("\\{[^/]+\\}", "*");
+                }
 
+                //HttpClientCalls
                 List<HttpClientCall> httpClientCalls = new ArrayList<>();
                 for (MethodCallExpr mce : metoda.findAll(MethodCallExpr.class)){
                     if (mce.getScope().isEmpty()) continue; //getscope je ono prije . dakle restTemplate u restTemplate.getForObject()
@@ -89,18 +116,20 @@ public class ASTParser {
                     try{
                         scopeType = mce.getScope().get().calculateResolvedType();
                     } catch (Exception e) {
+                        //e.printStackTrace();
                         continue;
                     }
                     if (!scopeType.describe().equals("org.springframework.web.client.RestTemplate")){
                         continue;
                     }
-                    if (!Set.of("getForObject", "getForEntity", "postForObject", "postForEntity", "put", "delete").contains(methodName)){
+                    String calledMethodName = mce.getNameAsString();
+                    if (!Set.of("getForObject", "getForEntity", "postForObject", "postForEntity", "put", "delete").contains(calledMethodName)){
                         continue;
                     }
                     Expression urlArg = mce.getArgument(0);
-                    String url = extractUrl(urlArg);
+                    String url = extractUrl(urlArg, classDecl);
 
-                    String httpMethod = methodNametoHttpMethod(methodName);
+                    String httpMethod = methodNametoHttpMethod(calledMethodName);
                     httpClientCalls.add(new HttpClientCall(httpMethod, url));
                 }
 
@@ -112,7 +141,7 @@ public class ASTParser {
         return parsiraneMetode;
     }
 
-    private String extractUrl(Expression urlArg){
+    private String extractUrl(Expression urlArg, ClassOrInterfaceDeclaration classDecl){
         String url = "*"; //sa * ne puca konkatenacija, a sa null puca, zato je ovdje *
         if (urlArg instanceof StringLiteralExpr){
             url = urlArg.asStringLiteralExpr().asString();
@@ -124,10 +153,24 @@ public class ASTParser {
                 Expression left = binary.getLeft();
                 Expression right = binary.getRight();
 
-                String leftUrl = extractUrl(left);
-                String rightUrl = extractUrl(right);
+                String leftUrl = extractUrl(left, classDecl);
+                String rightUrl = extractUrl(right, classDecl);
                 url = leftUrl + rightUrl;
             }
+        }
+        if (urlArg instanceof NameExpr ne && classDecl != null){
+            for (FieldDeclaration field : classDecl.getFields()){
+                for (VariableDeclarator vd : field.getVariables()){
+                    if (vd.getNameAsString().equals(ne.getNameAsString()) &&
+                        vd.getInitializer().isPresent() &&
+                        vd.getInitializer().get() instanceof StringLiteralExpr sle){
+                        url = sle.asString();
+                    }
+                }
+            }
+        }
+        if (url.matches("https?://.*")){
+            url = url.replaceFirst("https?://[^/]+", "");
         }
         return url;
     }
