@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,7 +31,7 @@ public class ASTParser {
         List<ParsedMethod> parsiraneMetode = new ArrayList<>();
 
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
-                new ReflectionTypeSolver(),
+                new ReflectionTypeSolver(false),
                 new JavaParserTypeSolver(serviceRoot.resolve("src/main/java"))
         );
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
@@ -116,7 +117,7 @@ public class ASTParser {
                     try{
                         scopeType = mce.getScope().get().calculateResolvedType();
                     } catch (Exception e) {
-                        //e.printStackTrace();
+                        System.out.println("RESOLVE FAIL: " + mce.toString() + " -> " + e.getMessage());
                         continue;
                     }
                     if (!scopeType.describe().equals("org.springframework.web.client.RestTemplate")){
@@ -146,6 +147,7 @@ public class ASTParser {
         if (urlArg instanceof StringLiteralExpr){
             url = urlArg.asStringLiteralExpr().asString();
         }
+
         if (urlArg instanceof BinaryExpr){
             BinaryExpr binary = urlArg.asBinaryExpr();
 
@@ -158,17 +160,32 @@ public class ASTParser {
                 url = leftUrl + rightUrl;
             }
         }
+
         if (urlArg instanceof NameExpr ne && classDecl != null){
+            boolean found = false; // prvo se gleda polje
             for (FieldDeclaration field : classDecl.getFields()){
                 for (VariableDeclarator vd : field.getVariables()){
                     if (vd.getNameAsString().equals(ne.getNameAsString()) &&
                         vd.getInitializer().isPresent() &&
                         vd.getInitializer().get() instanceof StringLiteralExpr sle){
                         url = sle.asString();
+                        found = true;
+                    }
+                }
+            }
+            //ako nije polje potrazi lokalnu varijablu u istoj metodi
+            if (!found){
+                Optional<MethodDeclaration> methodOpt = ne.findAncestor(MethodDeclaration.class);
+                if (methodOpt.isPresent()){ //pronaden MethodDeclaration
+                    for (VariableDeclarator vd : methodOpt.get().findAll(VariableDeclarator.class)){
+                        if (vd.getNameAsString().equals(ne.getNameAsString()) && vd.getInitializer().isPresent()){
+                            url = extractUrl(vd.getInitializer().get(), classDecl);
+                        }
                     }
                 }
             }
         }
+
         if (url.matches("https?://.*")){
             url = url.replaceFirst("https?://[^/]+", "");
         }

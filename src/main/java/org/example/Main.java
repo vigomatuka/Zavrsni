@@ -42,6 +42,7 @@ public class Main {
         ReportGenerator rg = new ReportGenerator();
         rg.generateReport(deadCode, repo1, repo2);
 
+        /*
         for (ParsedMethod pm : parsedMethods1) {
             if (pm.getMappingPath() != null) {
                 System.out.println("ENDPOINT: " + pm.getClassName() + "." + pm.getMethodName() + " -> " + pm.getMappingPath());
@@ -55,7 +56,7 @@ public class Main {
             }
         }
 
-        /*
+
         deadCode.forEach((key, methods) -> {
             System.out.println("Key: " + key);
 
