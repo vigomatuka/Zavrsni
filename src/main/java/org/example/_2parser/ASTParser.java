@@ -62,8 +62,8 @@ public class ASTParser {
                 List<String> annotations = metoda.getAnnotations().stream()
                         .map(AnnotationExpr::getNameAsString)
                         .collect(Collectors.toList());
-                String mappingPath = null;
 
+                String mappingPath = null;
                 for (AnnotationExpr ann : metoda.getAnnotations()){
                     String annStr = ann.getNameAsString();
                     if (annStr.endsWith("Mapping")){

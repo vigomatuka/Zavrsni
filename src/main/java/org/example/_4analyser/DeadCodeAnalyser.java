@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class DeadCodeAnalyser {
 
-    public Set<MethodNode> findDeadCode(Graph<MethodNode, CallEdge> graph){
+    public Set<MethodNode> findDeadCode(Graph<MethodNode, CallEdge> graph, Graph<MethodNode, CallEdge> graph2){
         Set<MethodNode> all = new HashSet<>(graph.vertexSet());
         Set<MethodNode> dead = new HashSet<>(graph.vertexSet());
         Set<MethodNode> entryNodes = new HashSet<>();
@@ -19,6 +19,9 @@ public class DeadCodeAnalyser {
 
         for (MethodNode node : all){
             if (node.isEntryPoint()) entryNodes.add(node);
+
+
+
         }
 
         for (MethodNode en : entryNodes){

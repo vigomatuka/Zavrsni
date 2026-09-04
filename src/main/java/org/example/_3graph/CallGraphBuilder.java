@@ -18,7 +18,23 @@ public class CallGraphBuilder {
 
         //Cvorovi i mapa
         for (ParsedMethod pm : parsedMethods){
-            MethodNode node = new MethodNode(pm.getClassName(), pm.getMethodName());
+            String httpMethod = null;
+            for (String ann : pm.getAnnotations()){
+                String hm = switch (ann){
+                    case "GetMapping" -> "GET";
+                    case "PostMapping" -> "POST";
+                    case "PutMapping" -> "PUT";
+                    case "DeleteMapping" -> "DELETE";
+                    case "PatchMapping" -> "PATCH";
+                    default -> null;
+                };
+                if (hm != null){
+                    httpMethod = hm;
+                    break;
+                }
+            }
+            MethodNode node = new MethodNode(pm.getClassName(), pm.getMethodName(), pm.getFileName(), pm.getLineNumber(),
+                                            pm.getMappingPath(),httpMethod , pm.getHttpClientCalls());
             graph.addVertex(node);
             String key = getKey(pm);
             map.put(key, node);

@@ -35,11 +35,11 @@ public class Main {
         Graph<MethodNode, CallEdge> graph2 = cgb.buildGraph(parsedMethods2);
 
         DeadCodeAnalyser dca = new DeadCodeAnalyser();
-        Set<MethodNode> dead1 = dca.findDeadCode(graph1);
-        Set<MethodNode> dead2 = dca.findDeadCode(graph2);
+        //Set<MethodNode> dead1 = dca.findDeadCode(graph1);
+        //Set<MethodNode> dead2 = dca.findDeadCode(graph2);
 
         ReportGenerator rg = new ReportGenerator();
-        rg.generateReport(dead1, dead2, repo1, repo2);
+        //rg.generateReport(dead1, dead2, repo1, repo2);
 
         /*
         for (Path a : files1){
