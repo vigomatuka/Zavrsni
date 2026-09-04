@@ -12,6 +12,7 @@ import org.jgrapht.Graph;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -35,11 +36,12 @@ public class Main {
         Graph<MethodNode, CallEdge> graph2 = cgb.buildGraph(parsedMethods2);
 
         DeadCodeAnalyser dca = new DeadCodeAnalyser();
-        //Set<MethodNode> dead1 = dca.findDeadCode(graph1);
-        //Set<MethodNode> dead2 = dca.findDeadCode(graph2);
+        Map<String, Set<MethodNode>> deadCode = dca.findDeadCode(graph1, repo1.toString(), graph2, repo2.toString());
 
         ReportGenerator rg = new ReportGenerator();
         //rg.generateReport(dead1, dead2, repo1, repo2);
+
+
 
         /*
         for (Path a : files1){
